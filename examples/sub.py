@@ -1,5 +1,7 @@
 import common
-from relay import Relay
+from relay_pool import RelayPool
+from log import log
+import datetime
 
 relayServer =  [ 
   "wss://nostr.tbai.me:592/",
@@ -12,18 +14,20 @@ relayServer =  [
 #  'wss://algo.utxo.one/',
 ];
 
-#hub = "wss://bridge.duozhutuan.com/";
-hub = "ws://localhost:8088/";
+hub = "wss://bridge.duozhutuan.com/";
+#hub = "ws://localhost:8088/";
 
 relays = [hub + relay for relay in relayServer]
 
 filters    = {"kinds":[1],"limit":100}
 
-r = Relay(relays[0])
+r = RelayPool(relays)
 
 r.connect(5)
 
 def handler_event(event):
+    dt_object = datetime.datetime.fromtimestamp(event['created_at'])
+    log.blue(dt_object.strftime('%Y-%m-%d %H:%M:%S'),False)
     print(event['content'])
 
 r.subscribe(filters)

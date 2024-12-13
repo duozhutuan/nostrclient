@@ -1,21 +1,25 @@
 from websocket import WebSocketApp
 from dataclasses import dataclass
-import json
 from queue import Queue
-import queue
 from threading import Condition
+from subscription import Subscription
+from log import log
 import threading
+import time
+import json
+import queue
+
 
 @dataclass
 class Relay:
     url: str
 
-    def __post_init__(self):
-        self.status:    bool = False
-        self.reconnect: bool = True
-        self.serial          = 0
-        self.listeners       = {}
-        self.eventqueue      = Queue() 
+    def __post_init__(self,reconnect=False):
+        
+        self.connected: bool = False 
+        self.reconnecttime   = 5 #default 5S
+        self.starttime       = int(time.time())
+
         self.connection_established = Condition()
         self.ws:WebSocketApp = WebSocketApp(
             self.url,
@@ -24,32 +28,37 @@ class Relay:
             on_error   = self._on_error,
             on_close   = self._on_close
         )
-        
+        if reconnect == False :
+            self.serial          = 0
+            self.listeners       = {}
+            self.eventqueue      = Queue()         
 
     def emitevent(self):
         while True:
+
             try:
                 eventname, args = self.eventqueue.get(timeout=0.1)
                 if eventname in self.listeners:
                     for listener in self.listeners[eventname]:
-                        listener(*args)
+                        listener(args)
             except queue.Empty:
                 continue 
 
     def connect(self,timeout=10):
-
-        threading.Thread(
+        self.run_thread = threading.Thread(
             target=self.ws.run_forever,
-            name=f"{self.url}-thread"
-        ).start()
+           
+        )
 
-        threading.Thread(
+        self.emit_thread = threading.Thread(
             target=self.emitevent,
-            name=f"{self.url}-thread"
-        ).start()
+             
+        )
+        self.run_thread.start()
+        self.emit_thread.start()
 
         with self.connection_established:
-            if not self.status:
+            if not self.connected:
                 self.connection_established.wait(timeout)
    
 
@@ -57,7 +66,8 @@ class Relay:
         self.ws.close()
 
     def send(self,message):
-
+        if self.connected == False:
+            return 
         if isinstance(message, str):
             self.ws.send(message)
         elif isinstance(message, dict):
@@ -69,14 +79,48 @@ class Relay:
         self.serial += 1
         self.send('["EVENT",' + json.dumps(event) + "]");
         
-    def subscribe(self,event):
+    def subscribe(self,event,sub=None):
+
         self.serial += 1 
-        self.send('["REQ",' + f'"NIPY-sub-{self.serial}",' + json.dumps(event) + "]");
+        if sub == None :
+            sub = Subscription(f'"NIPY-sub-{self.serial}"',event)
+
+        
+
+        def connecting():
+            
+            while self.eventqueue.qsize() > 0:
+                time.sleep(0.1)
+
+            event['since'] = self.starttime - 60 #To prevent missing messages, go back 60 seconds.
+            # set new starttime
+            self.__post_init__(reconnect=True);
+            self.connect();
+            # re subscribe
+            self.off("CLOSE",reconnect)
+            
+            self.subscribe(event,sub)
+
+        def reconnect(event): 
+            log.yellow(f'reconnect relay {self.url}') 
+            threading.Thread(
+                target=connecting,).start()    
+        
+        self.on("CLOSE",reconnect)
+
+        self.send('["REQ",' + sub.subid +',' + json.dumps(event) + "]");
 
     def on(self,eventname,func):
         if eventname not in self.listeners:
             self.listeners[eventname] = []
         self.listeners[eventname].append(func)
+
+    def off(self,eventname,func):
+        if eventname in self.listeners:
+            try:
+                self.listeners[eventname].remove(func)
+            except ValueError:
+                pass  # 如果函数不在列表中，就忽略这个错误
 
     def emit(self,eventname,args):
         self.eventqueue.put((eventname,args))
@@ -95,14 +139,27 @@ class Relay:
             subscription.filters = filters
 
 
+ 
 
     def _on_open(self, class_obj):
         with self.connection_established:
-            self.status = True
+            self.connected = True
             self.connection_established.notify()
 
     def _on_close(self, class_obj, status_code, message):
+       
+        # 1 emit 2 connected = False 
+        self.emit("CLOSE","") 
         self.connected = False
+        
+        
+    def _on_error(self, class_obj, error):
+        log.red(error)
+        log.blue(f'relay url:{self.url}');
+
+        if self.ws.sock.connected == False:
+            self.connected = False
+  
 
     def _on_message(self, ws, message: str):
         """Handle the incoming message."""
@@ -111,17 +168,17 @@ class Relay:
         try:
             data = json.loads(message)
             cmd, id, *rest = data
-             
+            
             if cmd == "EVENT":
-                self.handle_event(id, rest)
+                self.handle_event(id, *rest)
             elif cmd == "COUNT":
-                self.handle_count(id, rest)
+                self.handle_count(id, *rest)
             elif cmd == "EOSE":
                 self.handle_eose(id)
             elif cmd == "OK":
-                self.handle_ok(id, rest)
+                self.handle_ok(id, *rest)
             elif cmd == "CLOSED":
-                self.handle_closed(id, rest)
+                self.handle_closed(id, *rest)
             elif cmd == "NOTICE":
                 self.on_notice(rest[0])
             elif cmd == "AUTH":
@@ -132,21 +189,16 @@ class Relay:
         except json.JSONDecodeError as error:
             self.debug(f"Error parsing message from {self.relay_url}: {error}")   
  
-    def _on_error(self, class_obj, error):
-        self.connected = False
- 
+
+       
 
     # handle message
     
     def handle_event(self, id, rest):
         """Handle the 'EVENT' command."""
         self.emit("EVENT",rest)
-        so = self.open_subs.get(id)
-        if not so:
-            self.debug(f"Received event for unknown subscription {id}")
-            return
-        event = rest[0]
-        so.on_event(event)
+ 
+        
 
     def handle_count(self, id, rest):
         """Handle the 'COUNT' command."""
@@ -159,9 +211,7 @@ class Relay:
 
     def handle_eose(self, id):
         """Handle the 'EOSE' command."""
-        so = self.open_subs.get(id)
-        if so:
-            so.on_eose(id)
+        pass
 
     def handle_ok(self, id, rest):
         """Handle the 'OK' command."""
