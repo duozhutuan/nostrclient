@@ -32,6 +32,10 @@ class Relay:
             self.serial          = 0
             self.listeners       = {}
             self.eventqueue      = Queue()         
+            threading.Thread(
+                target=self.emitevent,
+             ).start()
+             
 
     def emitevent(self):
         while True:
@@ -45,17 +49,13 @@ class Relay:
                 continue 
 
     def connect(self,timeout=10):
+        
         self.run_thread = threading.Thread(
             target=self.ws.run_forever,
            
         )
 
-        self.emit_thread = threading.Thread(
-            target=self.emitevent,
-             
-        )
-        self.run_thread.start()
-        self.emit_thread.start()
+        self.run_thread.start()         
 
         with self.connection_established:
             if not self.connected:
@@ -84,13 +84,13 @@ class Relay:
         self.serial += 1 
         if sub == None :
             sub = Subscription(f'"NIPY-sub-{self.serial}"',event)
-
         
-
         def connecting():
-            
+
             while self.eventqueue.qsize() > 0:
                 time.sleep(0.1)
+            
+            self.ws.keep_running = False 
 
             event['since'] = self.starttime - 60 #To prevent missing messages, go back 60 seconds.
             # set new starttime

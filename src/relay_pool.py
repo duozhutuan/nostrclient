@@ -19,19 +19,19 @@ class RelayPool:
         self.listeners       = {}
         self.eventsqueue      = Queue()
         self.RelayList = [ Relay(url) for url in self.urls]
+        threading.Thread(
+            target=self.emitevents,      
+        ).start()
+
 
 
     def connect(self,timeout=10):
         for r in self.RelayList:
             r.connect(timeout)
 
-        self.emit_thread = threading.Thread(
-            target=self.emitevent,
-             
-        )
-        self.emit_thread.start()
 
-    def emitevent(self):
+
+    def emitevents(self):
         while True:
 
             try:
