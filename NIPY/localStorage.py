@@ -34,8 +34,10 @@ class LocalStorage:
             if os.path.isfile(file_path):
                 os.remove(file_path)
 
+local_storage = LocalStorage()
+
 if __name__ == "__main__":
-    local_storage = LocalStorage()
+    
 
     local_storage.set('username', 'john_doe')
     local_storage.set('age', 30)

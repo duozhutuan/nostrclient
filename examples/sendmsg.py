@@ -13,15 +13,14 @@ print("Your public key: ",pkey.public_key)
 print("Your public key bech32: ",pkey.public_key.bech32())
 
 
-relayServer =  [ 
+relayServer =  [
   "wss://nostr.tbai.me:592/",
-# 'wss://relay1.nostrchat.io',
- 'wss://relay2.nostrchat.io',
+  'wss://relay1.nostrchat.io',
+  'wss://relay2.nostrchat.io',
   'wss://relay.damus.io',
   'wss://strfry.iris.to',
   'wss://nos.lol',
 #  'wss://theforest.nostr1.com/',
-  'wss://algo.utxo.one/',
 ];
 
 hub = "wss://bridge.duozhutuan.com/";
@@ -29,16 +28,19 @@ hub = "wss://bridge.duozhutuan.com/";
 
 relays = [hub + relay for relay in relayServer]
 
-filters    = {"kinds":[1],"limit":100}
 
-r = RelayPool(relays)
+r = RelayPool(relays,pkey)
 
 r.connect(5)
 
-def handler_event(event):
-    dt_object = datetime.datetime.fromtimestamp(event['created_at'])
-    log.blue(dt_object.strftime('%Y-%m-%d %H:%M:%S'),False)
-    print(event['content'])
+content = "The message from NIPY python nostr client."
+kind    = 42
+tags    =  [['e', 'f412192fdc846952c75058e911d37a7392aa7fd2e727330f4344badc92fb8a22', 'wss://nos.lol', 'root']]
+msg = {
+        "kind":kind,
+        "tags":tags,
+        "content":content,
+}
 
-r.subscribe(filters)
-r.on("EVENT",handler_event)
+r.publish(msg)
+

@@ -67,16 +67,26 @@ class PublicKey:
         raw_public_key = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_public_key))
 
+    def __str__(self):
+        return self.hex()
+
 
 class PrivateKey:
-    def __init__(self, raw_secret: bytes=None) -> None:
-        if not raw_secret is None:
-            self.raw_secret = raw_secret
-        else:
+    def __init__(self, data = None) -> None:
+        if data is None:
             self.raw_secret = secrets.token_bytes(32)
-
+        elif isinstance(data, bytes):
+            self.raw_secret = data
+        elif isinstance(data, str):
+            if data.startswith("nsec"):
+                hrp, data, spec = bech32.bech32_decode(nsec)
+                self.raw_secret = bech32.convertbits(data, 5, 8)[:-1]
+            else:
+                self.raw_secret = bytes.fromhex(data)
+        
         sk = secp256k1.PrivateKey(self.raw_secret)
         self.public_key = PublicKey(sk.pubkey.serialize()[1:])
+ 
 
     @classmethod
     def from_nsec(cls, nsec: str):

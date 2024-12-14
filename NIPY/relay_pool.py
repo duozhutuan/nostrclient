@@ -5,6 +5,8 @@ from typing import List
 from threading import Condition
 from subscription import Subscription
 from log import log
+from key import PrivateKey
+from event import Event
 import threading
 import time
 import json
@@ -14,11 +16,12 @@ import queue
 @dataclass
 class RelayPool:
     urls: List[str]
+    Privkey: PrivateKey = None 
 
     def __post_init__(self):
         self.listeners       = {}
         self.eventsqueue      = Queue()
-        self.RelayList = [ Relay(url) for url in self.urls]
+        self.RelayList = [ Relay(url,self.Privkey) for url in self.urls]
         threading.Thread(
             target=self.emitevents,      
         ).start()
@@ -64,4 +67,29 @@ class RelayPool:
         for r in self.RelayList:
             r.subscribe(event)
             r.on("EVENT",handler_events)
-   
+
+    def publish(self,event):
+        if self.Privkey is None:
+            log.red("Publish need Private key to sign!");
+            retrun 
+        if isinstance(event, dict):
+            e = Event(event['content'])
+            if 'pubkey' in event:
+                e.public_key =  event['pubkey']
+            if 'created_at' in event:
+                e.created_at = event['created_at']
+
+            if 'kind' in event:
+                e.kind = event['kind']
+
+            if 'tags' in event:
+                e.tags = event['tags']
+
+        if isinstance(event, Event):
+            e = event
+        if e.signature == None: 
+            self.Privkey.sign_event(e)
+        
+        for r in self.RelayList:
+            r.publish(e)
+             

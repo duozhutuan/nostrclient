@@ -78,7 +78,7 @@ class Event:
         return pub_key.schnorr_verify(bytes.fromhex(self.id), bytes.fromhex(self.signature), None, raw=True)
 
 
-    def to_message(self) -> str:
+    def message(self) -> str:
         return json.dumps(
             [
                 "EVENT",

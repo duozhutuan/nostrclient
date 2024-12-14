@@ -4,6 +4,8 @@ from queue import Queue
 from threading import Condition
 from subscription import Subscription
 from log import log
+from key import PrivateKey
+from event import Event
 import threading
 import time
 import json
@@ -13,6 +15,7 @@ import queue
 @dataclass
 class Relay:
     url: str
+    Privkey: PrivateKey = None 
 
     def __post_init__(self,reconnect=False):
         
@@ -97,8 +100,28 @@ class Relay:
          
 
     def publish(self, event):
-        self.serial += 1
-        self.send('["EVENT",' + json.dumps(event) + "]");
+        if self.Privkey is None:
+            log.red("Publish need Private key to sign!");
+            return 
+        if isinstance(event, dict):
+            e = Event(event['content'])
+            if 'pubkey' in event:
+                e.public_key =  event['pubkey']
+            if 'created_at' in event:
+                e.created_at = event['created_at']
+
+            if 'kind' in event:
+                e.kind = event['kind']
+
+            if 'tags' in event:
+                e.tags = event['tags']
+
+        if isinstance(event, Event):
+            e = event
+        if e.signature == None: 
+            self.Privkey.sign_event(e)
+
+        self.send(e.message());
         
     def subscribe(self,event,sub=None):
 
@@ -217,26 +240,18 @@ class Relay:
         """Handle the 'EOSE' command."""
         pass
 
-    def handle_ok(self, id, rest):
+    def handle_ok(self, id, *rest):
         """Handle the 'OK' command."""
         ok = rest[0]
         reason = rest[1]
-        ep = self.open_event_publishes.get(id)
-        if not ep:
-            self.debug(f"Received OK for unknown event publish {id}")
-            return
-        first_ep = ep.pop()
-
+ 
+        print("ok",self.url)
         if ok:
             return reason
         else:
             print(reason)
             return reason
 
-        if not ep:
-            del self.open_event_publishes[id]
-        else:
-            self.open_event_publishes[id] = ep
 
     def handle_closed(self, id, rest):
         """Handle the 'CLOSED' command."""
