@@ -1,12 +1,12 @@
-from relay import Relay
+from .relay import Relay
 from dataclasses import dataclass
 from queue import Queue
 from typing import List
 from threading import Condition
-from subscription import Subscription
-from log import log
-from key import PrivateKey
-from event import Event
+from .subscription import Subscription
+from .log import log
+from .key import PrivateKey
+from .event import Event
 import threading
 import time
 import json

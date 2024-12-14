@@ -1,9 +1,9 @@
 import common
-from relay_pool import RelayPool
-from log import log
+from NIPY.relay_pool import RelayPool
+from NIPY.log import log
 import datetime
-from key import PrivateKey
-from localStorage import local_storage
+from NIPY.key import PrivateKey
+from NIPY.localStorage import local_storage
 
 Keypriv = local_storage.get("Keypriv")
 pkey = PrivateKey(Keypriv)

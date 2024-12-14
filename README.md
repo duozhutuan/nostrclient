@@ -27,8 +27,8 @@ r.on("EVENT",handler_event)
 
 ## key
 ```
-from key import PrivateKey
-from localStorage import local_storage
+from NIPY.key import PrivateKey
+from NIPY.localStorage import local_storage
 
 Keypriv = local_storage.get("Keypriv")
 pkey = PrivateKey(Keypriv)

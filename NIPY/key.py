@@ -6,8 +6,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from hashlib import sha256
 
-from event import EncryptedDirectMessage, Event, EventKind
-import bech32
+from .event import EncryptedDirectMessage, Event, EventKind
+from . import bech32
 
 
 import time

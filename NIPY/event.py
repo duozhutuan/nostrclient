@@ -6,7 +6,7 @@ from typing import List
 from secp256k1 import PublicKey
 from hashlib import sha256
 
-import bech32
+from . import bech32
 
 
 
