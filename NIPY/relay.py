@@ -35,6 +35,8 @@ class Relay:
             threading.Thread(
                 target=self.emitevent,
              ).start()
+
+            self.on("CLOSE",self.reconnect)
              
 
     def emitevent(self):
@@ -62,6 +64,25 @@ class Relay:
                 self.connection_established.wait(timeout)
    
 
+    def connecting(self):
+
+        while self.eventqueue.qsize() > 0:
+            time.sleep(0.1)
+        
+        self.ws.keep_running = False 
+
+        since = self.starttime - 60 #To prevent missing messages, go back 60 seconds.
+        # set new starttime
+        self.__post_init__(reconnect=True);
+        self.connect();
+        self.emit("reconnect",since)            
+           
+
+    def reconnect(self,event): 
+            log.yellow(f'reconnect relay {self.url}') 
+            threading.Thread(
+                target=self.connecting,).start()   
+
     def close(self):
         self.ws.close()
 
@@ -85,28 +106,11 @@ class Relay:
         if sub == None :
             sub = Subscription(f'"NIPY-sub-{self.serial}"',event)
         
-        def connecting():
+        def resub(since):
+            event['since'] = since
+            self.send('["REQ",' + sub.subid +',' + json.dumps(event) + "]");
 
-            while self.eventqueue.qsize() > 0:
-                time.sleep(0.1)
-            
-            self.ws.keep_running = False 
-
-            event['since'] = self.starttime - 60 #To prevent missing messages, go back 60 seconds.
-            # set new starttime
-            self.__post_init__(reconnect=True);
-            self.connect();
-            # re subscribe
-            self.off("CLOSE",reconnect)
-            
-            self.subscribe(event,sub)
-
-        def reconnect(event): 
-            log.yellow(f'reconnect relay {self.url}') 
-            threading.Thread(
-                target=connecting,).start()    
-        
-        self.on("CLOSE",reconnect)
+        self.on("reconnect",resub)
 
         self.send('["REQ",' + sub.subid +',' + json.dumps(event) + "]");
 

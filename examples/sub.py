@@ -2,16 +2,17 @@ import common
 from relay_pool import RelayPool
 from log import log
 import datetime
+from key import PrivateKey
 
 relayServer =  [ 
   "wss://nostr.tbai.me:592/",
 # 'wss://relay1.nostrchat.io',
-# 'wss://relay2.nostrchat.io',
+ 'wss://relay2.nostrchat.io',
   'wss://relay.damus.io',
   'wss://strfry.iris.to',
-#  'wss://nos.lol',
+  'wss://nos.lol',
 #  'wss://theforest.nostr1.com/',
-#  'wss://algo.utxo.one/',
+  'wss://algo.utxo.one/',
 ];
 
 hub = "wss://bridge.duozhutuan.com/";
@@ -24,6 +25,10 @@ filters    = {"kinds":[1],"limit":100}
 r = RelayPool(relays)
 
 r.connect(5)
+
+pkey = PrivateKey()
+
+print(pkey)
 
 def handler_event(event):
     dt_object = datetime.datetime.fromtimestamp(event['created_at'])

@@ -3,7 +3,9 @@ NIPY, a Python client for Nostr.
 
 ## install
 ```
-pip3 install . --break-system-packages
+git clone https://github.com/duozhutuan/NIPY
+cd NIPY
+pip3 install NIPY --break-system-packages
 ```
 
 ## subscribe filters

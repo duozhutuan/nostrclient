@@ -16,4 +16,5 @@ dynamic = ["version"]
 [project.urls]
 Home = "https://github.com/duozhutuan/NIPY"
 
-
+[tool.setuptools]
+packages = ["NIPY"] 
