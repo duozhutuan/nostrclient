@@ -1,11 +1,11 @@
-# NIPY
-NIPY, a Python client for Nostr.
+# NOPY
+NOPY, a Python client for Nostr.
 
 ## install
 ```
-git clone https://github.com/duozhutuan/NIPY
-cd NIPY
-pip3 install NIPY --break-system-packages
+git clone https://github.com/duozhutuan/NOPY
+cd NOPY
+pip3 install NOPY --break-system-packages
 ```
 
 ## subscribe filters
@@ -27,8 +27,8 @@ r.on("EVENT",handler_event)
 
 ## key
 ```
-from NIPY.key import PrivateKey
-from NIPY.localStorage import local_storage
+from NOPY.key import PrivateKey
+from NOPY.localStorage import local_storage
 
 Keypriv = local_storage.get("Keypriv")
 pkey = PrivateKey(Keypriv)
