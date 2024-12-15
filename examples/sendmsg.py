@@ -1,9 +1,9 @@
 import common
-from NOPY.relay_pool import RelayPool
-from NOPY.log import log
+from nostrclient.relay_pool import RelayPool
+from nostrclient.log import log
 import datetime
-from NOPY.key import PrivateKey
-from NOPY.localStorage import local_storage
+from nostrclient.key import PrivateKey
+from nostrclient.localStorage import local_storage
 
 Keypriv = local_storage.get("Keypriv")
 pkey = PrivateKey(Keypriv)
@@ -33,7 +33,7 @@ r = RelayPool(relays,pkey)
 
 r.connect(5)
 
-content = "The message from NOPY python nostr client."
+content = "The message from nostrclient python nostr client."
 kind    = 42
 tags    =  [['e', 'f412192fdc846952c75058e911d37a7392aa7fd2e727330f4344badc92fb8a22', 'wss://nos.lol', 'root']]
 msg = {

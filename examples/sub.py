@@ -1,9 +1,9 @@
 import common
-from NOPY.relay_pool import RelayPool
-from NOPY.log import log
+from nostrclient.relay_pool import RelayPool
+from nostrclient.log import log
 import datetime
-from NOPY.key import PrivateKey
-from NOPY.localStorage import local_storage
+from nostrclient.key import PrivateKey
+from nostrclient.localStorage import local_storage
 
 Keypriv = local_storage.get("Keypriv")
 pkey = PrivateKey(Keypriv)

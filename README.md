@@ -1,11 +1,11 @@
-# NOPY
-NOPY, a Python client for Nostr.
+# nostrclient
+nostrclient, a Python client for Nostr.
 
 ## install
 ```
-git clone https://github.com/duozhutuan/NOPY
-cd NOPY
-pip3 install NOPY --break-system-packages
+git clone https://github.com/duozhutuan/nostrclient
+cd nostrclient
+pip3 install nostrclient --break-system-packages
 ```
 
 ## subscribe filters
@@ -27,8 +27,8 @@ r.on("EVENT",handler_event)
 
 ## key
 ```
-from NOPY.key import PrivateKey
-from NOPY.localStorage import local_storage
+from nostrclient.key import PrivateKey
+from nostrclient.localStorage import local_storage
 
 Keypriv = local_storage.get("Keypriv")
 pkey = PrivateKey(Keypriv)
@@ -48,7 +48,7 @@ r = RelayPool(relays,pkey)
 
 ## publish
 ```
-content = "The message from NIPY python nostr client."
+content = "The message from nostrclient python nostr client."
 kind    = 42
 tags    =  [['e', 'f412192fdc846952c75058e911d37a7392aa7fd2e727330f4344badc92fb8a22', 'wss://nos.lol', 'root']]
 msg = {

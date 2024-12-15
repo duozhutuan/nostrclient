@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "NOPY"
+name = "nostrclient"
 authors = [{name = "duozhu"}]
 
 dependencies = [
@@ -14,5 +14,5 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Home = "https://github.com/duozhutuan/NOPY"
+Home = "https://github.com/duozhutuan/nostrclient"
 
