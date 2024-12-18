@@ -16,6 +16,9 @@ class Subscription():
             event = args[0]
             if event["id"] in self.eventids:
                 return 
+            # Prevent excessive memory usage    
+            if len(self.eventids) > 10000:
+                self.eventids = []
             self.eventids.append(event["id"])    
             result = func(*args, **kwargs) 
             return result

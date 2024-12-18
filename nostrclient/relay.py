@@ -10,7 +10,7 @@ import threading
 import time
 import json
 import queue
-
+import asyncio
 
 
 @dataclass
@@ -154,11 +154,33 @@ class Relay:
             except ValueError:
                 pass  # 如果函数不在列表中，就忽略这个错误
 
-    def fetchEvent(self,event):
+    def fetchEvent(self,event,timeout=2):
         self.serial += 1 
-        sub = Subscription(f'nostrclient-sub-{self.serial}',event)
+        sub = Subscription(f'nostrclient-sub-{self.serial}',event,self)
         self.send('["REQ","' + sub.subid +'",' + json.dumps(event) + "]");
-        return sub
+
+        if timeout == None:
+            return sub 
+
+        server_relpy = Condition()
+        event = None 
+
+        def finish(e):
+            event = e
+            with server_relpy:             
+                server_relpy.notify()
+        def done(e):
+            with server_relpy:             
+                server_relpy.notify()
+
+        sub.on("EVENT",finish)
+        sub.on("EOSE", done)
+
+        with server_relpy:
+            server_relpy.wait(timeout)
+
+        return event 
+
 
     def emit(self,eventname,args):
         self.eventqueue.put((eventname,args))
@@ -236,7 +258,9 @@ class Relay:
         """Handle the 'EVENT' command."""
         self.emit("EVENT" + id,rest)
  
-        
+    def handle_eose(self, id):
+        """Handle the 'EOSE' command."""
+        self.emit("EOSE" + id,"")    
 
     def handle_count(self, id, rest):
         """Handle the 'COUNT' command."""
@@ -246,10 +270,6 @@ class Relay:
         if cr:
             cr(count)
             del self.open_count_requests[id]
-
-    def handle_eose(self, id):
-        """Handle the 'EOSE' command."""
-        pass
 
     def handle_ok(self, id, *rest):
         """Handle the 'OK' command."""
@@ -266,9 +286,7 @@ class Relay:
 
     def handle_closed(self, id, rest):
         """Handle the 'CLOSED' command."""
-        so = self.open_subs.get(id)
-        if so:
-            so.on_closed(rest[0])
+        pass
 
     def on_notice(self, message):
         """Handle the 'NOTICE' command."""

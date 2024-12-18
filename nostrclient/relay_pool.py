@@ -11,7 +11,7 @@ import threading
 import time
 import json
 import queue
-
+import asyncio
 
 @dataclass
 class RelayPool:
@@ -72,17 +72,36 @@ class RelayPool:
 
         return subs 
 
-    def fetchEvent(self,event):
+    def fetchEvent(self,event,timeout = 2):
         self.serial  += 1;
         subs = Subscription(f'pool-sub-{self.serial}',event,self) 
-        def handler_events(event): 
-            self.emit("EVENT"+subs.subid,event)
+ 
+        server_relpy = Condition()
+        event = None 
+        
+        eose_count = 0
+        def finish(e):
+            event = e
+            with server_relpy:             
+                server_relpy.notify()
+        def done(e):
+            global eose_count 
+            eose_count += 1
+            if eose_count < len(self.RelayList):
+                return 
+                
+            with server_relpy:             
+                server_relpy.notify()
             
         for r in self.RelayList:
-            sub = r.fetchEvent(event)
-            sub.on("EVENT",handler_events)
+            sub = r.fetchEvent(event,timeout=None)
+            sub.on("EVENT",finish)
+            sub.on("EOSE", done)
 
-        return subs 
+        with server_relpy:
+            server_relpy.wait(timeout)
+
+        return event 
 
     def publish(self,event):
         if self.Privkey is None:

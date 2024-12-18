@@ -69,6 +69,9 @@ class PublicKey:
 
     def __str__(self):
         return self.hex()
+        
+    def __repr__(self):
+        return self.hex()
 
 
 class PrivateKey:

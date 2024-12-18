@@ -60,3 +60,17 @@ msg = {
 r.publish(msg)
 
 ```
+
+## fetchEvent and user
+
+```
+from nostrclient.user import User
+user = User(pkey.public_key,r)
+
+event = user.fetchProfile()
+if event is not None:
+    print(event)
+else:
+    print("No user Profile")
+
+```
