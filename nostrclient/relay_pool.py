@@ -72,6 +72,18 @@ class RelayPool:
 
         return subs 
 
+    def fetchEvent(self,event):
+        self.serial  += 1;
+        subs = Subscription(f'pool-sub-{self.serial}',event,self) 
+        def handler_events(event): 
+            self.emit("EVENT"+subs.subid,event)
+            
+        for r in self.RelayList:
+            sub = r.fetchEvent(event)
+            sub.on("EVENT",handler_events)
+
+        return subs 
+
     def publish(self,event):
         if self.Privkey is None:
             log.red("Publish need Private key to sign!");
