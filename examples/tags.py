@@ -75,5 +75,5 @@ def handler_event(event):
     kw = get_keywords(event["content"])
     print(lang,kw)
 
-r.subscribe(filters)
-r.on("EVENT",handler_event)
+subs =r.subscribe(filters)
+subs.on("EVENT",handler_event)

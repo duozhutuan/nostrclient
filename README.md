@@ -20,8 +20,8 @@ r.connect(5)
 def handler_event(event):
     print(event['content'])
 
-r.subscribe(filters)
-r.on("EVENT",handler_event)
+sub = r.subscribe(filters)
+sub.on("EVENT",handler_event)
 
 ```
 

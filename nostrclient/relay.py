@@ -12,6 +12,7 @@ import json
 import queue
 
 
+
 @dataclass
 class Relay:
     url: str
@@ -47,9 +48,12 @@ class Relay:
 
             try:
                 eventname, args = self.eventqueue.get(timeout=0.1)
+                
                 if eventname in self.listeners:
                     for listener in self.listeners[eventname]:
                         listener(args)
+ 
+
             except queue.Empty:
                 continue 
 
@@ -127,15 +131,16 @@ class Relay:
 
         self.serial += 1 
         if sub == None :
-            sub = Subscription(f'"NIPY-sub-{self.serial}"',event)
+            sub = Subscription(f'nostrclient-sub-{self.serial}',event,self)
         
         def resub(since):
             event['since'] = since
-            self.send('["REQ",' + sub.subid +',' + json.dumps(event) + "]");
+            self.send('["REQ", "' + sub.subid +'",' + json.dumps(event) + "]");
 
         self.on("reconnect",resub)
 
-        self.send('["REQ",' + sub.subid +',' + json.dumps(event) + "]");
+        self.send('["REQ","' + sub.subid +'",' + json.dumps(event) + "]");
+        return sub
 
     def on(self,eventname,func):
         if eventname not in self.listeners:
@@ -148,6 +153,12 @@ class Relay:
                 self.listeners[eventname].remove(func)
             except ValueError:
                 pass  # 如果函数不在列表中，就忽略这个错误
+
+    def fetchEvent(self,event):
+        self.serial += 1 
+        sub = Subscription(f'nostrclient-sub-{self.serial}',event)
+        self.send('["REQ","' + sub.subid +'",' + json.dumps(event) + "]");
+        return sub
 
     def emit(self,eventname,args):
         self.eventqueue.put((eventname,args))
@@ -223,7 +234,7 @@ class Relay:
     
     def handle_event(self, id, rest):
         """Handle the 'EVENT' command."""
-        self.emit("EVENT",rest)
+        self.emit("EVENT" + id,rest)
  
         
 

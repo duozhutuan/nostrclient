@@ -40,5 +40,5 @@ def handler_event(event):
     log.blue(dt_object.strftime('%Y-%m-%d %H:%M:%S'),False)
     print(event['content'])
 
-r.subscribe(filters)
-r.on("EVENT",handler_event)
+subs = r.subscribe(filters)
+subs.on("EVENT",handler_event)

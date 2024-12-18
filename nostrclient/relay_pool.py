@@ -25,7 +25,7 @@ class RelayPool:
         threading.Thread(
             target=self.emitevents,      
         ).start()
-
+        self.serial  = 0;
 
 
     def connect(self,timeout=10):
@@ -61,12 +61,16 @@ class RelayPool:
         self.eventsqueue.put((eventname,args))
 
     def subscribe(self,event):
+        self.serial  += 1;
+        subs = Subscription(f'pool-sub-{self.serial}',event,self) 
         def handler_events(event): 
-            self.emit("EVENT",event)
+            self.emit("EVENT"+subs.subid,event)
             
         for r in self.RelayList:
-            r.subscribe(event)
-            r.on("EVENT",handler_events)
+            sub = r.subscribe(event)
+            sub.on("EVENT",handler_events)
+
+        return subs 
 
     def publish(self,event):
         if self.Privkey is None:
