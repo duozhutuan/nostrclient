@@ -1,5 +1,29 @@
-from dataclasses import dataclass
+ 
+from dataclasses import dataclass, field,asdict
+from typing import Union, Optional, Dict
 
+@dataclass
+class UserProfile:
+    created_at: Optional[int] = None
+    name: Optional[str] = None
+    displayName: Optional[str] = None
+    image: Optional[str] = None
+    banner: Optional[str] = None
+    bio: Optional[str] = None
+    nip05: Optional[str] = None
+    lud06: Optional[str] = None
+    lud16: Optional[str] = None
+    about: Optional[str] = None
+    zapService: Optional[str] = None
+    website: Optional[str] = None
+    profileEvent: Optional[str] = None
+
+    def from_dict(self, data: dict):
+        for field in fields(self):
+            if field.name in data:
+                setattr(self, field.name, data[field.name])
+    def to_dict(self):
+        return asdict(self)
 
 
 @dataclass
@@ -8,7 +32,8 @@ class User:
     r:None 
     def __post_init__(self):
         self.pubkey = str(self.pubkey)
-
+        self.profile = UserProfile ()
+        
     def Event(self):
         return {
             "kinds": [0],
@@ -16,4 +41,8 @@ class User:
 
     def fetchProfile(self):
         return self.r.fetchEvent(self.Event())
+
+
+
+
         
