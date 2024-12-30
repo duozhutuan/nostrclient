@@ -4,6 +4,7 @@ from nostrclient.log import log
 import datetime
 from nostrclient.key import PrivateKey
 from nostrclient.localStorage import local_storage
+from nostrclient.actions import like_event
 
 Keypriv = local_storage.get("Keypriv")
 pkey = PrivateKey(Keypriv)
@@ -15,13 +16,12 @@ print("Your public key bech32: ",pkey.public_key.bech32())
 
 relayServer =  [ 
   "wss://nostr.tbai.me:592/",
-# 'wss://relay1.nostrchat.io',
- 'wss://relay2.nostrchat.io',
+  'wss://relay1.nostrchat.io',
+  'wss://relay2.nostrchat.io',
   'wss://relay.damus.io',
   'wss://strfry.iris.to',
   'wss://nos.lol',
-#  'wss://theforest.nostr1.com/',
-  'wss://algo.utxo.one/',
+ # 'pubkey/25ab88fc19432f1c35ced742122ec57a41398ec7c50997fd08c29ca79cbe3b71',  
 ];
 
 hub = "wss://bridge.duozhutuan.com/";
@@ -35,10 +35,18 @@ r = RelayPool(relays)
 
 r.connect(5)
 
+r1 = RelayPool(relays,pkey)
+r1.connect(5)
+
 def handler_event(event):
     dt_object = datetime.datetime.fromtimestamp(event['created_at'])
     log.blue(dt_object.strftime('%Y-%m-%d %H:%M:%S'),False)
+    print(event['id'])
     print(event['content'])
+
+    # publish a like event
+    r1.publish(like_event(event['id'],event['pubkey']))
+
 
 subs = r.subscribe(filters)
 subs.on("EVENT",handler_event)

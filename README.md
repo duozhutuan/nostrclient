@@ -74,3 +74,12 @@ else:
     print("No user Profile")
 
 ```
+
+## like event
+```
+from nostrclient.actions import like_event
+r1.publish(like_event(event['id'],event['pubkey']))
+```
+
+For a complete example, see examples/sub.py.
+
