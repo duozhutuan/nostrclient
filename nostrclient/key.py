@@ -69,7 +69,7 @@ class PublicKey:
 
     def __str__(self):
         return self.hex()
-        
+
     def __repr__(self):
         return self.hex()
 
@@ -82,8 +82,9 @@ class PrivateKey:
             self.raw_secret = data
         elif isinstance(data, str):
             if data.startswith("nsec"):
-                hrp, data, spec = bech32.bech32_decode(nsec)
-                self.raw_secret = bech32.convertbits(data, 5, 8)[:-1]
+                hrp, data, spec = bech32.bech32_decode(data)
+                self.raw_secret = bytes(bech32.convertbits(data, 5, 8)[:-1])
+                print(self.raw_secret)
             else:
                 self.raw_secret = bytes.fromhex(data)
         
