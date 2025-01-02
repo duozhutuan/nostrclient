@@ -83,3 +83,18 @@ r1.publish(like_event(event['id'],event['pubkey']))
 
 For a complete example, see examples/sub.py.
 
+## User
+
+```
+user = User(pkey.public_key,r)
+
+profile = user.fetchProfile()
+if profile is not None:
+    print(profile)
+else:
+    print("No user Profile")
+
+user.profile.website = "https://github.com/duozhutuan/NorstrBridge"
+user.update()
+
+```

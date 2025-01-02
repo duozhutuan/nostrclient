@@ -20,6 +20,7 @@ relayServer =  [
   'wss://relay.damus.io',
   'wss://strfry.iris.to',
   'wss://nos.lol',
+  'pubkey/25ab88fc19432f1c35ced742122ec57a41398ec7c50997fd08c29ca79cbe3b71',
 ];
 
 hub = "wss://bridge.duozhutuan.com/";
@@ -28,13 +29,17 @@ hub = "wss://bridge.duozhutuan.com/";
 relays = [hub + relay for relay in relayServer]
 
 
-r = RelayPool(relays)
+r = RelayPool(relays,pkey)
 
 r.connect(5)
+
 user = User(pkey.public_key,r)
 
-event = user.fetchProfile()
-if event is not None:
-    print(event)
+profile = user.fetchProfile()
+if profile is not None:
+    print(profile)
 else:
     print("No user Profile")
+
+user.profile.website = "https://github.com/duozhutuan/NorstrBridge"
+user.update()

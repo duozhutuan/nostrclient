@@ -77,31 +77,33 @@ class RelayPool:
         subs = Subscription(f'pool-sub-{self.serial}',event,self) 
  
         server_relpy = Condition()
-        event = None 
+        ret_event = None 
         
         eose_count = 0
         def finish(e):
-            event = e
+            nonlocal ret_event
+            ret_event = e
+            
             with server_relpy:             
                 server_relpy.notify()
         def done(e):
-            global eose_count 
+            nonlocal eose_count 
             eose_count += 1
             if eose_count < len(self.RelayList):
                 return 
-                
+
             with server_relpy:             
                 server_relpy.notify()
             
         for r in self.RelayList:
             sub = r.fetchEvent(event,timeout=None)
             sub.on("EVENT",finish)
-            sub.on("EOSE", done)
+            r.on("EOSE", done)
 
         with server_relpy:
             server_relpy.wait(timeout)
-
-        return event 
+        
+        return ret_event 
 
     def publish(self,event):
         if self.Privkey is None:

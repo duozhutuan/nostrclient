@@ -1,6 +1,7 @@
  
-from dataclasses import dataclass, field,asdict
+from dataclasses import dataclass, fields,asdict
 from typing import Union, Optional, Dict
+import json
 
 @dataclass
 class UserProfile:
@@ -22,6 +23,7 @@ class UserProfile:
         for field in fields(self):
             if field.name in data:
                 setattr(self, field.name, data[field.name])
+
     def to_dict(self):
         return asdict(self)
 
@@ -40,8 +42,19 @@ class User:
             "authors": [self.pubkey]}
 
     def fetchProfile(self):
-        return self.r.fetchEvent(self.Event())
+        
+        ret = self.r.fetchEvent(self.Event())
+        if ret:
+            self.profile.from_dict(json.loads(ret['content']))
+        
+        return self.profile 
 
+    def update(self): 
+        event = {
+            "kind":0,
+            "content": json.dumps(self.profile.to_dict())
+           }       
+        self.r.publish(event)
 
 
 

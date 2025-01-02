@@ -155,6 +155,7 @@ class Relay:
                 pass  # 如果函数不在列表中，就忽略这个错误
 
     def fetchEvent(self,event,timeout=2):
+        
         self.serial += 1 
         sub = Subscription(f'nostrclient-sub-{self.serial}',event,self)
         self.send('["REQ","' + sub.subid +'",' + json.dumps(event) + "]");
@@ -163,10 +164,11 @@ class Relay:
             return sub 
 
         server_relpy = Condition()
-        event = None 
+        ret_event = None 
 
         def finish(e):
-            event = e
+            nonlocal ret_event
+            ret_event = e
             with server_relpy:             
                 server_relpy.notify()
         def done(e):
@@ -174,12 +176,12 @@ class Relay:
                 server_relpy.notify()
 
         sub.on("EVENT",finish)
-        sub.on("EOSE", done)
+        self.on("EOSE", done)
 
         with server_relpy:
             server_relpy.wait(timeout)
-
-        return event 
+        
+        return ret_event 
 
 
     def emit(self,eventname,args):
