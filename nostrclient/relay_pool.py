@@ -108,7 +108,7 @@ class RelayPool:
     def publish(self,event):
         if self.Privkey is None:
             log.red("Publish need Private key to sign!");
-            retrun 
+            return 
         if isinstance(event, dict):
             e = Event(event['content'])
             if 'pubkey' in event:
