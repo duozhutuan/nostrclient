@@ -41,5 +41,5 @@ if profile is not None:
 else:
     print("No user Profile")
 
-user.profile.website = "https://github.com/duozhutuan/NorstrBridge"
+user.profile.website = "https://github.com/duozhutuan/NostrBridge"
 user.update()
