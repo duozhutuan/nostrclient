@@ -32,6 +32,10 @@ class Relay:
             on_error   = self._on_error,
             on_close   = self._on_close
         )
+
+        # first connect reconnect = False
+        # 2,3.... reconnect = True
+
         if reconnect == False :
             self.serial          = 0
             self.listeners       = {}
@@ -138,6 +142,9 @@ class Relay:
             self.send('["REQ", "' + sub.subid +'",' + json.dumps(event) + "]");
 
         self.on("reconnect",resub)
+
+        sub.resub = resub
+        sub.r     = self 
 
         self.send('["REQ","' + sub.subid +'",' + json.dumps(event) + "]");
         return sub

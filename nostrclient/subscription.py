@@ -10,6 +10,7 @@ class Subscription():
     def __post_init__(self):
         self.eventids = []
         self.funcs = {}
+        self.sublist = []
 
     def decorator(self,func):
         def wrapper(*args, **kwargs):
@@ -33,5 +34,10 @@ class Subscription():
         self.r.off(eventname+self.subid,self.funcs[func])
 
 
+    def close(self):
+        for sub in self.sublist:
+            if sub.resub:
+                sub.r.off("reconnect",sub.resub)
+                sub.off("EVENT",sub.handler_events)
 
     

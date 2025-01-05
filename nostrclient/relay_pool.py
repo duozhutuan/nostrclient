@@ -69,6 +69,9 @@ class RelayPool:
         for r in self.RelayList:
             sub = r.subscribe(event)
             sub.on("EVENT",handler_events)
+            sub.handler_events = handler_events
+            subs.sublist.append(sub)
+
 
         return subs 
 
