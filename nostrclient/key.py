@@ -63,7 +63,7 @@ class PublicKey:
     @classmethod
     def from_npub(cls, npub: str):
         """ Load a PublicKey from its bech32/npub form """
-        hrp, data, spec = bech32.bech32_decode(npub)
+        hrp, data = bech32.bech32_decode(npub)
         raw_public_key = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_public_key))
 
@@ -82,7 +82,7 @@ class PrivateKey:
             self.raw_secret = data
         elif isinstance(data, str):
             if data.startswith("nsec"):
-                hrp, data, spec = bech32.bech32_decode(data)
+                hrp, data = bech32.bech32_decode(data)
                 self.raw_secret = bytes(bech32.convertbits(data, 5, 8)[:-1])
                 print(self.raw_secret)
             else:
@@ -95,7 +95,7 @@ class PrivateKey:
     @classmethod
     def from_nsec(cls, nsec: str):
         """ Load a PrivateKey from its bech32/nsec form """
-        hrp, data, spec = bech32.bech32_decode(nsec)
+        hrp, data  = bech32.bech32_decode(nsec)
         raw_secret = bech32.convertbits(data, 5, 8)[:-1]
         return cls(bytes(raw_secret))
 
