@@ -51,7 +51,7 @@ class PublicKey:
 
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_bytes, 8, 5)
-        return bech32.bech32_encode("npub", converted_bits, bech32.Encoding.BECH32)
+        return bech32.bech32_encode("npub", converted_bits)
 
     def hex(self) -> str:
         return self.raw_bytes.hex()
@@ -101,7 +101,7 @@ class PrivateKey:
 
     def bech32(self) -> str:
         converted_bits = bech32.convertbits(self.raw_secret, 8, 5)
-        return bech32.bech32_encode("nsec", converted_bits, bech32.Encoding.BECH32)
+        return bech32.bech32_encode("nsec", converted_bits)
 
     def hex(self) -> str:
         return self.raw_secret.hex()
