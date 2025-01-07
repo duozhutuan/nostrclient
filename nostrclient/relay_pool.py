@@ -32,7 +32,10 @@ class RelayPool:
         for r in self.RelayList:
             r.connect(timeout)
 
-
+    
+    def close(self):
+        for r in self.RelayList:
+            r.close()
 
     def emitevents(self):
         while True:

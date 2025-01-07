@@ -39,5 +39,5 @@ class Subscription():
             if sub.resub:
                 sub.r.off("reconnect",sub.resub)
                 sub.off("EVENT",sub.handler_events)
-
+        self.r.close()
     
