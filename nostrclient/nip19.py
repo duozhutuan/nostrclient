@@ -13,7 +13,10 @@ def to_bytes(data):
         return bytes([data])
     return bytes(data)
 
+def integer_to_uint8_array(number: int) -> bytes:
 
+    hex_str = f"{number:08x}"
+    return bytes.fromhex(hex_str)
 
 def tlv_decode(data, tag_map=None):
     """
@@ -49,37 +52,32 @@ def bytes_to_str(data):
 def bytes_to_int(data):
     return int.from_bytes(data, 'big')
 
-def tlv_encode(data, tag_map=None):
+ 
+def tlv_encode(data, tag_map={}):
     """
     将原始数据编码为 TLV 格式的字节流。
     """
-    tag_map = tag_map or {}
     result = []
-    for tag_name, value in data.items():
-        # 查找 tag_name 对应的 tag 和 format
-        tag = None
-        fmt = to_bytes
-        for t, info in tag_map.items():
-            if info.get('name') == tag_name:
-                tag = t
-                fmt = info.get('format', to_bytes)
-                break
-        if tag is None:
-            # 如果 tag_name 不在 tag_map 中，直接使用 tag_name 作为 tag
-            tag = tag_name
-
-        # 将 value 转换为字节数组
-        if isinstance(value, list):
-            # 如果 value 是列表，逐个处理
-            for v in value:
-                encoded_value = fmt(v)
+    
+    # 优先遍历 tag_map
+    for tag, info in tag_map.items():
+        tag_name = info.get('name')
+        if tag_name in data:  # 如果 tag_name 在 data 中存在
+            value = data[tag_name]
+            fmt = info.get('format', to_bytes)  # 获取 format，默认为 to_bytes
+            
+            # 将 value 转换为字节数组
+            if isinstance(value, list):
+                # 如果 value 是列表，逐个处理
+                for v in value:
+                    encoded_value = fmt(v)
+                    result.extend([tag, len(encoded_value)])
+                    result.extend(encoded_value)
+            else:
+                # 如果 value 是单个值
+                encoded_value = fmt(value)
                 result.extend([tag, len(encoded_value)])
                 result.extend(encoded_value)
-        else:
-            # 如果 value 是单个值
-            encoded_value = fmt(value)
-            result.extend([tag, len(encoded_value)])
-            result.extend(encoded_value)
     return bytes(result)
 
 def encode_bech32(name, data):
@@ -96,12 +94,12 @@ def encode_bech32(name, data):
             0x00: {'name': 'id', 'format': bytes.fromhex},
             0x01: {'name': 'relay', 'format': to_bytes},
             0x02: {'name': 'author', 'format': bytes.fromhex},
-            0x03: {'name': 'kind', 'format': to_bytes}
+            0x03: {'name': 'kind', 'format': integer_to_uint8_array}
         },
         'naddr': {
             0x00: {'name': 'id', 'format': bytes.fromhex},
             0x02: {'name': 'author', 'format': bytes.fromhex},
-            0x03: {'name': 'kind', 'format': to_bytes}
+            0x03: {'name': 'kind', 'format': integer_to_uint8_array}
         }
     }
 
