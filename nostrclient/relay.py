@@ -130,7 +130,8 @@ class Relay:
             self.Privkey.sign_event(e)
 
         self.send(e.message());
-        
+        return e
+
     def subscribe(self,event,sub=None):
 
         self.serial += 1 

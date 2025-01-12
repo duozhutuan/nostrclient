@@ -135,4 +135,4 @@ class RelayPool:
         
         for r in self.RelayList:
             r.publish(e)
-             
+        return e     
