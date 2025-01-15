@@ -257,7 +257,7 @@ class Relay:
                 self.debug(f"Unknown command: {cmd}")
 
         except json.JSONDecodeError as error:
-            self.debug(f"Error parsing message from {self.relay_url}: {error}")   
+            self.debug(f"Error parsing message from {self.url}: {error}")   
  
 
        
