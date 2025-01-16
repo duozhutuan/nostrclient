@@ -10,8 +10,6 @@ import threading
 import time
 import json
 import queue
-import asyncio
-
 
 @dataclass
 class Relay:
@@ -32,7 +30,7 @@ class Relay:
             on_error   = self._on_error,
             on_close   = self._on_close
         )
-
+        
         # first connect reconnect = False
         # 2,3.... reconnect = True
 
@@ -65,10 +63,10 @@ class Relay:
         
         self.run_thread = threading.Thread(
             target=self.ws.run_forever,
-           
         )
 
         self.run_thread.start()         
+
 
         with self.connection_established:
             if not self.connected:
@@ -95,7 +93,9 @@ class Relay:
                 target=self.connecting,).start()   
 
     def close(self):
+        self.off("CLOSE",self.reconnect)
         self.ws.close()
+        self.run_thread.join()
 
     def send(self,message):
         if self.connected == False:
@@ -128,7 +128,6 @@ class Relay:
             e = event
         if e.signature == None: 
             self.Privkey.sign_event(e)
-
         self.send(e.message());
         return e
 
@@ -226,8 +225,8 @@ class Relay:
     def _on_error(self, class_obj, error):
         log.red(error)
         log.blue(f'relay url:{self.url}');
-
-        if self.ws.sock.connected == False:
+ 
+        if self.connected != False and self.ws.sock.connected == False:
             self.connected = False
   
 
@@ -286,7 +285,7 @@ class Relay:
         ok = rest[0]
         reason = rest[1]
  
-        print("ok",self.url)
+        #print("ok",self.url)
         if ok:
             return reason
         else:
