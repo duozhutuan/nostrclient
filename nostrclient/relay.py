@@ -19,7 +19,6 @@ class Relay:
     def __post_init__(self,reconnect=False):
         
         self.connected: bool = False 
-        self.reconnecttime   = 5 #default 5S
         self.starttime       = int(time.time())
 
         self.connection_established = Condition()
@@ -36,6 +35,7 @@ class Relay:
 
         if reconnect == False :
             self.serial          = 0
+            self.reconnecttime   = 5 #default 5S
             self.listeners       = {}
             self.eventqueue      = Queue()         
             threading.Thread(
@@ -223,12 +223,15 @@ class Relay:
         
         
     def _on_error(self, class_obj, error):
-        log.red(error)
+        log.red(f'{error},{type(error).__name__}, {id(self)},{self.reconnecttime}')
         log.blue(f'relay url:{self.url}');
- 
+
+        if type(error).__name__ in [ "ConnectionRefusedError","SSLEOFError"]: 
+            time.sleep(self.reconnecttime) 
+            self.reconnecttime += 1
+
         if self.connected != False and self.ws.sock.connected == False:
             self.connected = False
-  
 
     def _on_message(self, ws, message: str):
         """Handle the incoming message."""

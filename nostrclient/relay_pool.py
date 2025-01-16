@@ -32,7 +32,17 @@ class RelayPool:
         for r in self.RelayList:
             r.connect(timeout)
 
-    
+        # if timeout = 0 ，Wait for at least one success
+        if timeout == 0:
+            connected = False
+            count = 100 # 10 s
+            while connected == False and count:
+              for r1 in self.RelayList:
+                if r1.connected == True:
+                    connected = True
+              count -= 1
+              time.sleep(0.1)
+
     def close(self):
         for r in self.RelayList:
             r.close()
