@@ -288,11 +288,10 @@ class Relay:
         ok = rest[0]
         reason = rest[1]
  
-        #print("ok",self.url)
         if ok:
             return reason
         else:
-            print(reason)
+            print(reason,self.url)
             return reason
 
 
