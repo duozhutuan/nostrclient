@@ -44,8 +44,6 @@ def handler_event(event):
     print(event['id'])
     print(event['content'])
 
-    # publish a like event
-    r1.publish(like_event(event['id'],event['pubkey']))
 
 
 subs = r.subscribe(filters)
