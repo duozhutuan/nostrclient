@@ -12,6 +12,7 @@ import time
 import json
 import queue
 import asyncio
+import concurrent.futures
 
 @dataclass
 class RelayPool:
@@ -22,6 +23,8 @@ class RelayPool:
         self.listeners       = {}
         self.eventsqueue      = Queue()
         self.RelayList = [ Relay(url,self.Privkey) for url in self.urls]
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
+
         threading.Thread(
             target=self.emitevents,      
         ).start()
@@ -54,7 +57,7 @@ class RelayPool:
                 eventname, args = self.eventsqueue.get(timeout=0.1)
                 if eventname in self.listeners:
                     for listener in self.listeners[eventname]:
-                        listener(args)
+                        self.executor.submit(listener, args)
             except queue.Empty:
                 continue 
 
