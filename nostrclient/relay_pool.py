@@ -28,7 +28,18 @@ class RelayPool:
         ).start()
         self.serial  = 0;
 
+    def add_relay(self,url):
+        r = Relay(url,self.Privkey)
+        self.RelayList.append(r)
+        r.connect(1)
+        return r
 
+    def del_relay(self,url):
+        for r1 in self.RelayList:
+            if r1.url == url:
+                self.RelayList.remove(r1)
+                r1.close()
+                        
     def connect(self,timeout=10):
         for r in self.RelayList:
             r.connect(timeout)

@@ -116,3 +116,15 @@ p2 = encode_bech32("nprofile",p1)
 print(p2)
 """
 ```
+
+## add or delete relay 
+```
+r = RelayPool(relays)
+
+r.connect(5)
+
+r.add_relay("wss://nostr.mom")
+
+r.del_relay("wss://nostr.mom")
+
+```
