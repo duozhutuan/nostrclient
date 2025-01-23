@@ -10,7 +10,6 @@ import threading
 import time
 import json
 import queue
-import concurrent.futures
 
 @dataclass
 class Relay:
@@ -39,7 +38,6 @@ class Relay:
             self.reconnecttime   = 5 #default 5S
             self.listeners       = {}
             self.eventqueue      = Queue()
-            self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)         
             threading.Thread(
                 target=self.emitevent,
              ).start()
@@ -49,17 +47,15 @@ class Relay:
 
     def emitevent(self):
         while True:
-
             try:
-                eventname, args = self.eventqueue.get(timeout=0.1)
-                
+                eventname, args = self.eventqueue.get()
                 if eventname in self.listeners:
                     for listener in self.listeners[eventname]:
-                        self.executor.submit(listener, args)
- 
-
-            except queue.Empty:
-                continue 
+                        exec_th = threading.Thread(target=listener, args=(args,))
+                        exec_th.start()
+                        threads.append(exec_th)
+            except:
+                continue
 
     def connect(self,timeout=10):
         
