@@ -185,28 +185,15 @@ class Relay:
 
         with server_relpy:
             server_relpy.wait(timeout)
+
+        sub.off("EVENT",finish)
+        self.off("EOSE", done)
         
         return ret_event 
 
 
     def emit(self,eventname,args):
-        self.eventqueue.put((eventname,args))
-
-    def add_subscription(self, id, filters):
-        with self.lock:
-            self.subscriptions[id] = Subscription(id, filters)
-
-    def close_subscription(self, id: str) -> None:
-        with self.lock:
-            self.subscriptions.pop(id, None)
-
-    def update_subscription(self, id: str, filters) -> None:
-        with self.lock:
-            subscription = self.subscriptions[id]
-            subscription.filters = filters
-
-
- 
+        self.eventqueue.put((eventname,args)) 
 
     def _on_open(self, class_obj):
         with self.connection_established:

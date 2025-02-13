@@ -84,7 +84,7 @@ class PrivateKey:
             if data.startswith("nsec"):
                 hrp, data = bech32.bech32_decode(data)
                 self.raw_secret = bytes(bech32.convertbits(data, 5, 8)[:-1])
-                print(self.raw_secret)
+                 
             else:
                 self.raw_secret = bytes.fromhex(data)
         

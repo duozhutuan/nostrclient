@@ -35,8 +35,12 @@ class Subscription():
 
 
     def close(self):
+        # relay pool
         for sub in self.sublist:
             if sub.resub:
                 sub.r.off("reconnect",sub.resub)
                 sub.off("EVENT",sub.handler_events)
-    
+        # relay         
+        if len(self.sublist) == 0 :
+            self.r.off("reconnect",self.resub)
+                 

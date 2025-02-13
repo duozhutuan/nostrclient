@@ -128,10 +128,16 @@ class RelayPool:
             sub = r.fetchEvent(event,timeout=None)
             sub.on("EVENT",finish)
             r.on("EOSE", done)
+            subs.sublist.append(sub)
 
         with server_relpy:
             server_relpy.wait(timeout)
         
+        for r in self.RelayList:
+            r.off("EOSE", done)
+        for sub in subs.sublist:
+            sub.off("EVENT",finish)
+
         return ret_event 
 
     def publish(self,event):
