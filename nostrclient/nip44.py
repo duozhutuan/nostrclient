@@ -201,7 +201,6 @@ def decrypt(payload: str, conversation_key: bytes) -> str:
     :return: 解密后的明文
     """
     nonce, ciphertext, mac = decode_payload(payload)
-    print(nonce)
     chacha_key, chacha_nonce, hmac_key = get_message_keys(conversation_key, nonce)
  
     calculated_mac = hmac_aad(hmac_key, ciphertext, nonce)
