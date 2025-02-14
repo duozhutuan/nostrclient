@@ -6,7 +6,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from hashlib import sha256
 
-from .event import EncryptedDirectMessage, Event, EventKind
+from .event import Event, EventKind
 from . import bech32
 
 
@@ -113,37 +113,6 @@ class PrivateKey:
     def compute_shared_secret(self, public_key_hex: str) -> bytes:
         pk = secp256k1.PublicKey(bytes.fromhex("02" + public_key_hex), True)
         return pk.ecdh(self.raw_secret, hashfn=copy_x)
-
-    def encrypt_message(self, message: str, public_key_hex: str) -> str:
-        padder = padding.PKCS7(128).padder()
-        padded_data = padder.update(message.encode()) + padder.finalize()
-
-        iv = secrets.token_bytes(16)
-        cipher = Cipher(algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv))
-
-        encryptor = cipher.encryptor()
-        encrypted_message = encryptor.update(padded_data) + encryptor.finalize()
-
-        return f"{base64.b64encode(encrypted_message).decode()}?iv={base64.b64encode(iv).decode()}"
-    
-    def encrypt_dm(self, dm: EncryptedDirectMessage) -> None:
-        dm.content = self.encrypt_message(message=dm.cleartext_content, public_key_hex=dm.recipient_pubkey)
-
-    def decrypt_message(self, encoded_message: str, public_key_hex: str) -> str:
-        encoded_data = encoded_message.split('?iv=')
-        encoded_content, encoded_iv = encoded_data[0], encoded_data[1]
-
-        iv = base64.b64decode(encoded_iv)
-        cipher = Cipher(algorithms.AES(self.compute_shared_secret(public_key_hex)), modes.CBC(iv))
-        encrypted_content = base64.b64decode(encoded_content)
-
-        decryptor = cipher.decryptor()
-        decrypted_message = decryptor.update(encrypted_content) + decryptor.finalize()
-
-        unpadder = padding.PKCS7(128).unpadder()
-        unpadded_data = unpadder.update(decrypted_message) + unpadder.finalize()
-
-        return unpadded_data.decode()
 
     def sign_message_hash(self, hash: bytes) -> str:
         sk = secp256k1.PrivateKey(self.raw_secret)
