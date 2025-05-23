@@ -56,6 +56,7 @@ class RelayPool:
               time.sleep(0.1)
 
     def close(self):
+        self.eventsqueue.put(("STOP",""))
         for r in self.RelayList:
             r.close()
 
@@ -63,6 +64,8 @@ class RelayPool:
         while True:
             try:
                 eventname, args = self.eventsqueue.get()
+                if eventname == "STOP":
+                    break
                 if eventname in self.listeners:
                     for listener in self.listeners[eventname]:
                         exec_th = threading.Thread(target=listener, args=(args,))

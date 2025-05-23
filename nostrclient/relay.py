@@ -28,7 +28,6 @@ class Relay:
             on_error   = self._on_error,
             on_close   = self._on_close
         )
-        
         # first connect reconnect = False
         # 2,3.... reconnect = True
 
@@ -48,6 +47,8 @@ class Relay:
         while True:
             try:
                 eventname, args = self.eventqueue.get()
+                if eventname == "STOP":
+                    break
                 if eventname in self.listeners:
                     for listener in self.listeners[eventname]:
                         exec_th = threading.Thread(target=listener, args=(args,))
@@ -93,6 +94,7 @@ class Relay:
     def close(self):
         self.off("CLOSE",self.reconnect)
         self.ws.close()
+        self.eventqueue.put(("STOP",""))
         self.run_thread.join()
 
     def send(self,message):
