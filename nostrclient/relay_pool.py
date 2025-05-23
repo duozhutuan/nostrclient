@@ -17,11 +17,11 @@ import asyncio
 class RelayPool:
     urls: List[str]
     Privkey: PrivateKey = None 
-
+    closeOnEose: bool = True
     def __post_init__(self):
-        self.listeners       = {}
-        self.eventsqueue      = Queue()
-        self.RelayList = [ Relay(url,self.Privkey) for url in self.urls]
+        self.listeners      = {}
+        self.eventsqueue    = Queue()
+        self.RelayList = [ Relay(url,self.Privkey,closeOnEose=self.closeOnEose) for url in self.urls]
 
         threading.Thread(
             target=self.emitevents,      
@@ -29,7 +29,7 @@ class RelayPool:
         self.serial  = 0;
 
     def add_relay(self,url):
-        r = Relay(url,self.Privkey)
+        r = Relay(url,self.Privkey,closeOnEose=self.closeOnEose)
         self.RelayList.append(r)
         r.connect(1)
         return r

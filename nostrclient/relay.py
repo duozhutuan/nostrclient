@@ -15,12 +15,11 @@ import queue
 class Relay:
     url: str
     Privkey: PrivateKey = None 
-
+    closeOnEose:bool = True
     def __post_init__(self,reconnect=False):
         
         self.connected: bool = False 
         self.starttime       = int(time.time())
-
         self.connection_established = Condition()
         self.ws:WebSocketApp = WebSocketApp(
             self.url,
@@ -41,8 +40,8 @@ class Relay:
             threading.Thread(
                 target=self.emitevent,
              ).start()
-
-            self.on("CLOSE",self.reconnect)
+            if self.closeOnEose == False:
+                self.on("CLOSE",self.reconnect)
              
 
     def emitevent(self):
@@ -87,8 +86,9 @@ class Relay:
 
     def reconnect(self,event): 
             log.yellow(f'reconnect relay {self.url}') 
-            threading.Thread(
-                target=self.connecting,).start()   
+            if self.closeOnEose == False:
+                threading.Thread(
+                    target=self.connecting,).start()   
 
     def close(self):
         self.off("CLOSE",self.reconnect)
@@ -150,7 +150,8 @@ class Relay:
     def on(self,eventname,func):
         if eventname not in self.listeners:
             self.listeners[eventname] = []
-        self.listeners[eventname].append(func)
+        if func not in self.listeners[eventname]:
+            self.listeners[eventname].append(func)
 
     def off(self,eventname,func):
         if eventname in self.listeners:
@@ -258,6 +259,8 @@ class Relay:
     def handle_eose(self, id):
         """Handle the 'EOSE' command."""
         self.emit("EOSE" + id,"")    
+        if self.closeOnEose == True:
+            self.close()
 
     def handle_count(self, id, rest):
         """Handle the 'COUNT' command."""
@@ -282,8 +285,9 @@ class Relay:
 
     def handle_closed(self, id, rest):
         """Handle the 'CLOSED' command."""
-        pass
-
+        if self.closeOnEose == True:
+            self.close()
+    
     def on_notice(self, message):
         """Handle the 'NOTICE' command."""
         self.debug(f"NOTICE: {message}")
